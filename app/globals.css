@@ -1,26 +1,155 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   PALETTE — fonte unica di verità per i colori del sito.
+   "moss" corrisponde al colore --antara-green-inspired richiesto nel brief
+   (rinominato per non portare il nome di un brand terzo dentro le classi
+   Tailwind generate, es. bg-antara-green-inspired). Il valore hex è invariato.
+   ========================================================================== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --cream: #e8ddc7;
+  --cream-soft: #f3ebd9;
+  --deep-green: #1f3423;
+  --moss: #425e40;
+  --dark-brown: #241811;
+  --warm-brown: #4b3325;
+  --sand: #c7af8b;
+  --muted-gold: #a88b5b;
+  --ink: #11110e;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-cream: var(--cream);
+  --color-cream-soft: var(--cream-soft);
+  --color-deep-green: var(--deep-green);
+  --color-moss: var(--moss);
+  --color-dark-brown: var(--dark-brown);
+  --color-warm-brown: var(--warm-brown);
+  --color-sand: var(--sand);
+  --color-muted-gold: var(--muted-gold);
+  --color-ink: var(--ink);
+
+  --font-display: var(--font-cormorant), Georgia, serif;
+  --font-body: var(--font-manrope), system-ui, sans-serif;
+
+  --container-editorial: 84rem;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--ink);
+  scroll-behavior: auto; /* lo scroll fluido è gestito da Lenis (SmoothScrollProvider) */
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--ink);
+  color: var(--cream);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--muted-gold);
+  color: var(--ink);
+}
+
+/* Scrollbar sottile, coerente con l'estetica editoriale */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--sand) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--warm-brown);
+  border-radius: 999px;
+}
+
+/* Focus visibile e coerente ovunque, mai rimosso senza sostituto */
+:focus-visible {
+  outline: 2px solid var(--muted-gold);
+  outline-offset: 3px;
+}
+
+/* ==========================================================================
+   Utility editoriali riusate dai componenti
+   ========================================================================== */
+.label-eyebrow {
+  font-family: var(--font-body);
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
+  font-size: 0.7rem;
+  font-weight: 500;
+}
+
+.editorial-container {
+  max-width: var(--container-editorial);
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+@media (min-width: 768px) {
+  .editorial-container {
+    padding-inline: 3rem;
+  }
+}
+@media (min-width: 1280px) {
+  .editorial-container {
+    padding-inline: 5rem;
+  }
+}
+
+/* ==========================================================================
+   Bordo "a cupola" per le transizioni tra sezioni impilate (stile Antara:
+   curva ellittica ampia che attraversa tutta la larghezza, non un semplice
+   angolo arrotondato). border-radius con raggio orizzontale 50% forza le
+   due curve dei corner ad incontrarsi al centro in alto, invece di lasciare
+   un tratto piatto in mezzo come farebbe un raggio fisso in px/rem su una
+   sezione larga quanto il viewport.
+   ========================================================================== */
+/*
+  --dome-y è il raggio verticale della cupola, isolato in una custom
+  property: GSAP non riesce a interpolare correttamente la sintassi
+  ellittica "/ N N 0 0" dentro la shorthand border-radius (la appiattisce
+  durante il tween, perdendo la componente verticale), ma sa animare
+  perfettamente una singola custom property numerica. Il border-radius
+  vero e proprio resta sempre dichiarato qui in CSS statico, mai scritto
+  da JS: solo --dome-y viene mosso dallo scroll.
+*/
+.section-dome {
+  --dome-y: 3rem;
+  border-radius: 50% 50% 0 0 / var(--dome-y) var(--dome-y) 0 0;
+}
+@media (min-width: 768px) {
+  .section-dome {
+    --dome-y: 5.5rem;
+  }
+}
+
+/* Linea hairline riutilizzabile (stato "chiuso", le animazioni GSAP portano a scaleX(1)) */
+.hairline {
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+/* Rimuove l'highlight blu di tap su mobile mantenendo gli stati di focus */
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ==========================================================================
+   Accessibilità — prefers-reduced-motion
+   Le animazioni GSAP/Framer controllano questo a runtime (JS), qui copriamo
+   anche i casi puramente CSS/embed che non passano da JS.
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
