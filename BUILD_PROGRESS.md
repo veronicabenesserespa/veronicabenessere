@@ -12,6 +12,39 @@ aperta · ❌ da fare.
 
 ---
 
+## 0c. Quindicesimo giro (2026-07-11, feedback Bax): Instagram reale confermato
+
+✅ **Handle e link reali**: `@veronica.benessere`,
+`https://www.instagram.com/veronica.benessere` — `data/site.ts`
+`instagram.handle`/`.url`, non più il placeholder `@nomeprofilo`. Unica
+fonte di verità, letta da `components/Footer.tsx` ("Seguimi su Instagram"),
+`components/FullscreenMenu.tsx` (link social nel menu full-screen) e
+JSON-LD `sameAs` in `app/layout.tsx`.
+🐛 **Bug reale trovato e corretto durante il cambio**: `app/layout.tsx`
+decideva se pubblicare Instagram in `sameAs` confrontando
+`site.instagram.handle !== "@nomeprofilo"` — con l'handle ora reale e
+`site` dichiarato `as const` (tipo letterale), TypeScript segnala
+correttamente che quel confronto non può più essere `false` (build rotta,
+"comparison appears to be unintentional"). Non era solo un problema di
+tipo: la guardia sul placeholder testuale era comunque un pattern fragile
+(si sarebbe rotta anche solo rinominando l'handle in futuro). Sostituito
+con inclusione incondizionata di `site.instagram.url` in `sameAsCandidates`
+(Instagram è reale e confermato, non serve più una guardia) — stesso
+pattern già usato per `facebook.url` (`|| null`, condizionale solo perché
+quello è ancora effettivamente vuoto).
+✅ **Verificato**: build di produzione pulita (l'errore TS sopra bloccava
+la build prima del fix, confermato che ora passa), `next start` +
+controllo dell'HTML reale: handle/link corretti in footer, menu
+full-screen, e `"sameAs":["https://www.instagram.com/veronica.benessere"]`
+nel JSON-LD.
+
+⚠️ **Checklist aperta aggiornata** (vedi blocco 14/"Prossimi passi
+bloccanti" più sotto e memoria di progetto): Instagram non è più tra i dati
+mancanti. Restano aperti: dominio reale, `og-cover.jpg`, Facebook (se
+esiste), orari confermati.
+
+---
+
 ## 0b. Quattordicesimo giro (2026-07-11, feedback Bax): favicon fiore di loto
 
 ✅ **Favicon originale creata** — Bax ha chiesto "un fiore di loto o qualcosa
@@ -821,7 +854,8 @@ alla parte alta della sezione non appena diventa visibile.
 ✅ **Unita al Footer (2026-07-10)** — non più una sezione a sé, vedi
 blocco 4d e blocco 11 qui sotto. `components/InstagramSection.tsx`
 eliminato.
-❌ Handle Instagram reale non presente (placeholder `@nomeprofilo`).
+✅ Handle Instagram reale confermato (2026-07-11): `@veronica.benessere` —
+vedi blocco 0c.
 
 ## 11. Footer
 ✅ `components/Footer.tsx` — ora include anche il blocco Instagram in cima
@@ -870,9 +904,10 @@ inesistente.
 "Veronica Benessere" (rinominato da "Veronica Massaggi" il 2026-07-10),
 operatorName "Veronica", WhatsApp/telefono +39 380 753 4917, CAP zona
 Cadoneghe (35010). Restano placeholder (marcati
-`TODO Bax` nel file) solo i campi non presenti nel catalogo: email, via e
-civico esatti, orari, handle Instagram reale. `data/treatments.ts` è ora
-100% reale (vedi blocco 7).
+`TODO Bax` nel file) solo i campi non presenti nel catalogo: orari.
+Email, indirizzo (ora privato, vedi blocco 0a) e handle Instagram (vedi
+blocco 0c) sono stati confermati nei giri successivi a questa nota.
+`data/treatments.ts` è ora 100% reale (vedi blocco 7).
 
 ## 17. QA / consegna finale
 ❌ Non ancora fatta la consegna finale a Bax (dove cambiare testi/prezzi,
@@ -892,8 +927,9 @@ fatta all'ultimo blocco, dopo aver chiuso i punti aperti sopra.
 
 ## Prossimi passi bloccanti (serve risposta di Bax)
 
-1. **Dati mancanti**: email, indirizzo esatto (via/civico), orari reali,
-   handle Instagram. Tutti marcati `TODO Bax` in `data/site.ts`.
+1. **Dati mancanti**: orari reali (unico campo ancora marcato `TODO Bax` in
+   `data/site.ts` — email, indirizzo e handle Instagram confermati nei
+   giri successivi, vedi blocchi 0a/0c).
 2. **Asset reali**: video hero ✅ ricevuti e integrati (2026-07-10). Mancano
    ancora le foto (massage-room, hands-massage, towels-oil, 3x instagram
    preview) — quando arrivano vanno depositate in `public/assets/` con i

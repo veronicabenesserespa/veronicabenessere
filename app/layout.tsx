@@ -82,11 +82,13 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // sameAs pubblica solo profili social reali confermati — mai l'URL
-  // placeholder "@nomeprofilo"/Facebook vuoto, altrimenti Google indicizza
-  // un profilo social che non esiste o non è quello giusto.
+  // sameAs pubblica solo profili social reali confermati — mai un profilo
+  // vuoto/non confermato, altrimenti Google indicizza un link che non
+  // esiste o non è quello giusto. Instagram è reale e confermato
+  // (2026-07-11): pubblicato sempre. Facebook resta condizionale finché
+  // resta un placeholder vuoto in data/site.ts.
   const sameAsCandidates: (string | null)[] = [
-    site.instagram.handle !== "@nomeprofilo" ? site.instagram.url : null,
+    site.instagram.url,
     site.facebook.url || null,
   ];
   const sameAs = sameAsCandidates.filter(

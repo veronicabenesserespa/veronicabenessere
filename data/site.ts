@@ -58,10 +58,10 @@ export const site = {
       "https://www.google.com/maps/search/?api=1&query=Cadoneghe+PD,+Italia",
   },
 
-  // TODO Bax: handle Instagram reale ancora da confermare.
+  // Instagram reale confermato da Bax (2026-07-11).
   instagram: {
-    handle: "@nomeprofilo",
-    url: "https://instagram.com/nomeprofilo",
+    handle: "@veronica.benessere",
+    url: "https://www.instagram.com/veronica.benessere",
   },
 
   // TODO Bax: link della pagina Facebook, se esiste. Finché resta vuota,
