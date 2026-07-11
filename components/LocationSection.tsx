@@ -5,7 +5,10 @@ import { site, socialLinks } from "@/data/site";
 
 export default function LocationSection() {
   const details = [
-    { label: "Indirizzo", value: `${site.address.line1}, ${site.address.line2}` },
+    {
+      label: "Zona",
+      value: `${site.address.postalCode} ${site.address.city} (${site.address.province})`,
+    },
     { label: "Parcheggio", value: site.address.parking },
     { label: "Mezzi", value: site.address.transport },
   ];

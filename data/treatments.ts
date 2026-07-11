@@ -64,13 +64,13 @@ export type TreatmentPackage = {
 
 // Prezzo a pacchetto: valido per qualunque trattamento tra quelli sopra.
 export const packages: TreatmentPackage[] = [
-  { sessions: "1 seduta", price: "€30" },
-  { sessions: "3 sedute", price: "€85", perSession: "≈ €28 / seduta" },
+  { sessions: "1 seduta", price: "€40" },
+  { sessions: "3 sedute", price: "€100", perSession: "≈ €33 / seduta" },
   {
     sessions: "5 sedute",
-    price: "€140",
-    perSession: "€28 / seduta",
+    price: "€160",
+    perSession: "€32 / seduta",
     featured: true,
   },
-  { sessions: "10 sedute", price: "€250", perSession: "€25 / seduta" },
+  { sessions: "10 sedute", price: "€300", perSession: "€30 / seduta" },
 ];

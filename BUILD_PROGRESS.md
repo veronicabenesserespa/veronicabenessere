@@ -12,6 +12,161 @@ aperta · ❌ da fare.
 
 ---
 
+## 0a. Tredicesimo giro (2026-07-11, feedback Bax): indirizzo privato, prezzi aggiornati
+
+✅ **Indirizzo pubblico ridotto a solo città/CAP** — richiesta esplicita di
+Bax: via e civico reali ("Via Guglielmo Marconi 35") non devono più comparire
+in nessun punto pubblico del sito, resta visibile ovunque solo "35010
+Cadoneghe (PD)". `data/site.ts`: `address` ristrutturato da `line1`/`line2`
+liberi a campi tipati `city`/`province`/`postalCode` (single source of
+truth, via/civico reali lasciati solo come commento per riferimento di
+Bax, mai letti da nessun componente). Toccati 3 punti che leggevano
+l'indirizzo:
+- `components/LocationSection.tsx` — label "Indirizzo" → "Zona", valore ora
+  "35010 Cadoneghe (PD)" invece di via+civico.
+- `app/layout.tsx` (JSON-LD `LocalBusiness`) — rimosso `streetAddress`,
+  `addressLocality` ora legge `site.address.city` ("Cadoneghe", il comune
+  reale della sede) invece di `site.city` ("Padova", che è il claim
+  SEO/area di mercato, non l'indirizzo legale — erano due cose diverse
+  tenute erroneamente insieme prima di questo giro). Aggiunto `postalCode`
+  (mancava). `addressRegion` ora legge `site.address.province` invece di
+  essere hardcoded "PD" in due punti diversi.
+- `data/site.ts` stesso — `mapsEmbedSrc`/`mapsLinkHref`: query cambiata da
+  "Via Guglielmo Marconi 35, 35010 Cadoneghe PD" a "Cadoneghe PD, Italia".
+  Non è solo testo: la mappa incorporata ora centra sulla città, senza pin
+  sulla via/civico esatti — nascondere il testo dell'indirizzo ma lasciare
+  il pin preciso sulla mappa avrebbe vanificato la richiesta.
+
+⚠️ **Indirizzo preciso nella mail di conferma prenotazione — richiede
+configurazione lato Cal.com, non codice**: il booking è interamente gestito
+da Cal.com (embed in `components/CalEmbed.tsx`, nessun backend custom in
+questo repo — vedi blocco 8). Le email di conferma le manda Cal.com, quindi
+"mostra l'indirizzo solo dopo la prenotazione" si configura nella dashboard
+Cal.com, non nel codice di questo sito. Procedura consigliata (verificare i
+nomi esatti dei menu nel proprio account, l'interfaccia Cal.com cambia nel
+tempo):
+1. Cal.com → Event Types → l'evento usato dal sito (slug in
+   `site.booking.calLink`, ora `"veronica-benessere/massaggio-1-ora"`) →
+   tab **Location**.
+2. Aggiungere location type **"In Person"/"In-person meeting"** e inserire
+   l'indirizzo reale completo (Via Guglielmo Marconi 35, 35010 Cadoneghe
+   PD). Se Cal.com espone un toggle tipo "Hide address until booking is
+   confirmed" / "Only show location once booked", attivarlo: mostra
+   l'indirizzo al cliente solo dopo la prenotazione (email + invito
+   calendario), non sulla pagina pubblica di prenotazione.
+3. **Se quel toggle non è disponibile sul piano/versione in uso** (metodo
+   più affidabile, non dipende da un'opzione che potrebbe non esserci):
+   lasciare la location dell'Event Type generica (es. solo "In Person"
+   senza indirizzo, o "Da confermare") e usare **Workflows** di Cal.com →
+   nuovo workflow, trigger "When new event is booked"/"Event confirmed" →
+   azione "Send email to attendee" → corpo email personalizzato con
+   l'indirizzo completo. Questo garantisce che il testo dell'indirizzo
+   esista solo dentro l'email post-prenotazione, mai nella pagina pubblica
+   dell'embed.
+Non eseguibile da qui: è configurazione su un account SaaS esterno (Cal.com)
+di cui non ho credenziali/accesso in questa sessione — da fare da Bax
+direttamente nel suo dashboard Cal.com.
+
+✅ **Prezzi pacchetti aggiornati** in `data/treatments.ts` (unica fonte,
+letta da `components/TreatmentsMenu.tsx`, `app/prezzi-massaggi-padova/
+page.tsx`, e da `app/massaggio-rilassante-padova/page.tsx` +
+`app/massaggio-schiena-collo-padova/page.tsx` via `packages[0]` — quindi un
+solo file toccato, tutte le pagine coerenti):
+- 1 seduta: €30 → **€40**
+- 3 sedute: €85 → **€100** (≈ €33/seduta, era ≈ €28/seduta)
+- 5 sedute: €140 → **€160** (€32/seduta esatto, era €28/seduta)
+- 10 sedute: €250 → **€300** (€30/seduta esatto, era €25/seduta)
+Nessun prezzo per singolo trattamento nel JSON-LD (invariato, il prezzo è
+sempre a pacchetto — vedi blocco 7).
+
+✅ **Verificato**: `npm run build` pulito (zero errori TS, tutte le route
+generate correttamente incluse le 2 pagine SEO che leggono `packages[0]`),
+`npm run lint` pulito (solo il warning preesistente non correlato su
+`<img>` in `Hero.tsx`).
+
+---
+
+## 0. Dodicesimo giro (2026-07-10, feedback Bax): SEO locale, zero modifiche estetiche
+
+Richiesta esplicita: nessun cambiamento visivo, solo dati/metadata SEO
+per rendere il sito trovabile online. Dettagli completi e checklist in
+**`SEO_PLAN.md`** (nuovo file). Riepilogo:
+
+✅ **Due decisioni chiarite con Bax prima di procedere** (entrambe
+consequenziali, non decidibili in autonomia): indirizzo reale resta
+pubblico (mappa + JSON-LD, nessuna modifica); pagina
+`/regala-massaggio-padova` scartata perché presupponeva un prodotto
+(buono regalo) non confermato nei dati del progetto.
+
+✅ **`data/site.ts`**: aggiunto `areaServed: "Padova e provincia"` (area
+geografica reale, non un elenco di comuni inventato) e `facebook: {url:
+""}` (placeholder pronto, pubblicato solo quando valorizzato). Pulito un
+commento TODO obsoleto sul `calLink` (il valore reale era già stato
+inserito da Bax in un giro precedente, il commento diceva ancora
+"sostituiscilo").
+
+✅ **`app/layout.tsx`**: title/description home ampliati, `keywords`
+esteso con le varianti di ricerca richieste (vicino Padova, prezzo
+Padova, schiena collo Padova, ecc. — solo keyword, nessun dato
+aziendale inventato). JSON-LD: aggiunto schema `WebSite`, tipo business
+cambiato da solo `LocalBusiness` a `["HealthAndBeautyBusiness",
+"LocalBusiness"]` (più specifico, resta valido come LocalBusiness),
+aggiunto `areaServed`. `sameAs` ora pubblica un profilo social solo se è
+reale: salta l'URL Instagram placeholder e il Facebook vuoto, invece di
+dichiarare a Google un profilo che non esiste.
+
+✅ **4 nuove pagine SEO**, stesso design system esistente (stessa
+struttura di `/privacy`, nessuna nuova estetica), ognuna con
+title/description/canonical/OG propri, `BreadcrumbList` JSON-LD, CTA
+prenotazione + WhatsApp, disclaimer benessere:
+- `/prezzi-massaggi-padova` — listino/pacchetti reali
+- `/massaggio-schiena-collo-padova` — mappata sul trattamento reale "Decontratturante"
+- `/massaggio-rilassante-padova` — mappata sul trattamento reale "Svedese"
+- `/prenota` — landing di conversione pura, riusa `CalEmbed` (stesso componente della home)
+
+Valutate e **scartate** (motivo in `SEO_PLAN.md` §5): `/massaggi-padova`
+(duplicherebbe la home, pattern doorway page da evitare),
+`/regala-massaggio-padova` (prodotto non confermato), `/contatti`
+(valore marginale, già coperto da footer+Location).
+
+✅ **`app/sitemap.ts`**: aggiunte le 4 nuove pagine, rimosse `/privacy` e
+`/cookie` (hanno già `robots: {index:false}` nel proprio metadata — una
+pagina noindex non dovrebbe stare in sitemap).
+
+🐛 **Bug reale trovato e corretto durante la scrittura delle nuove
+pagine**: in `/prezzi-massaggi-padova`, la frase "il prezzo di Veronica
+Benessere non dipende..." veniva renderizzata senza lo spazio
+("Benesserenon"). Causa: quando un'espressione JSX (`{site.businessName}`)
+è seguita da uno spazio e poi il testo continua su più righe nel
+sorgente, il compilatore JSX di questo progetto (Next.js/SWC) elimina lo
+spazio iniziale di quel blocco di testo — un comportamento reale e
+riproducibile (verificato campionando l'HTML/RSC generato dalla build di
+produzione), non un typo. Fix: spazio esplicito via `{" "}` subito dopo
+l'espressione. Controllate le altre 3 pagine nuove per lo stesso pattern
+(espressione seguita da testo multi-riga): nessun altro caso trovato,
+verificato campionando l'HTML compilato di ciascuna.
+
+⚠️ **Non fatto in questo giro** (fuori scope esplicito, "solo dati SEO"):
+nessun bottone/link visibile aggiunto per Facebook (il campo dati è
+pronto in `data/site.ts`, ma aggiungerlo in UI è una modifica di
+componente); nessuna modifica a Hero/Footer/IntroSection/ecc.
+
+Note tecniche verificate: build di produzione pulita, lint pulito,
+tutte e 4 le nuove pagine testate con Playwright (fresh install, rimosso
+a fine test) — zero errori JS, calendario Cal.com montato correttamente
+anche sulla route dedicata `/prenota`, titoli/H1 corretti su tutte.
+
+📌 **Osservazione, non causata da me**: durante questo giro è comparso un
+commit `1492b70 "Initial deploy"` sul branch `main` (autore
+`imbacsii-ops`) che include tutto lo stato del progetto fino a quel
+momento — non ho eseguito io nessun `git commit` in questa sessione
+(per convenzione, committo solo su richiesta esplicita). Probabile
+pipeline di deploy automatica o commit fatto da Bax in un altro
+terminale. Le modifiche fatte *dopo* quel commit (il fix dello spazio
+mancante) restano ancora non committate.
+
+---
+
 ## 1. Brief strategico
 ✅ Brief completo ricevuto (AGENTS.md/CLAUDE.md + prompt esteso). Obiettivo:
 lead gen (prenotazione), ICP definito nel brief, competitor Antara come

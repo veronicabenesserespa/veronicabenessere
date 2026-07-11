@@ -45,8 +45,8 @@ export default function PrezziMassaggiPadovaPage() {
           Prezzi massaggi a Padova
         </h1>
         <p className="mt-6 max-w-2xl text-base leading-relaxed text-cream/75 md:text-lg">
-          A {site.city} il prezzo di {site.businessName} non dipende dal
-          singolo trattamento scelto, ma dal percorso: un pacchetto di
+          A {site.city} il prezzo di {site.businessName}{" "}
+          non dipende dal singolo trattamento scelto, ma dal percorso: un pacchetto di
           sedute pensato per chi vuole rendere il benessere un&apos;abitudine,
           non un&apos;eccezione. Ogni seduta dura un&apos;ora (il massaggio
           sportivo max 30 minuti), in un ambiente riservato e curato nei
@@ -77,12 +77,12 @@ export default function PrezziMassaggiPadovaPage() {
                   <p className="mt-1 text-xs text-cream/45">{p.perSession}</p>
                 ) : null}
               </div>
-              <a
+              <Link
                 href="/#prenota"
                 className="label-eyebrow self-start border-b border-sand/40 pb-1 text-cream transition-colors hover:border-sand hover:text-sand"
               >
                 Prenota
-              </a>
+              </Link>
             </div>
           ))}
         </div>
@@ -123,12 +123,12 @@ export default function PrezziMassaggiPadovaPage() {
         </ul>
 
         <div className="mt-16 flex flex-wrap items-center gap-4">
-          <a
+          <Link
             href="/#prenota"
             className="label-eyebrow rounded-full bg-sand px-8 py-4 text-ink transition-transform hover:scale-[1.03]"
           >
             Prenota il tuo momento
-          </a>
+          </Link>
           <a
             href={socialLinks.whatsappHref}
             target="_blank"

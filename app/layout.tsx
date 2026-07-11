@@ -115,11 +115,13 @@ export default function RootLayout({
         telephone: site.phone,
         email: site.email,
         priceRange: "€€",
+        // Niente streetAddress: via/civico restano privati, solo
+        // città/CAP sono pubblici (vedi nota in data/site.ts).
         address: {
           "@type": "PostalAddress",
-          streetAddress: site.address.line1,
-          addressLocality: site.city,
-          addressRegion: "PD",
+          addressLocality: site.address.city,
+          postalCode: site.address.postalCode,
+          addressRegion: site.address.province,
           addressCountry: "IT",
         },
         // Area servita ampia (provincia), non un elenco di comuni

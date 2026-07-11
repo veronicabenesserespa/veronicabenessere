@@ -34,16 +34,28 @@ export const site = {
   whatsappNumber: "393807534917",
   whatsappMessage: "Ciao! Vorrei avere informazioni sui trattamenti.",
 
-  // Indirizzo confermato da Bax (2026-07-10).
+  // Indirizzo — SOLO città/CAP sono pubblici (mappa, JSON-LD, sezione
+  // "Dove trovarmi", footer): via e civico non vengono più stampati da
+  // nessun componente di questo sito, su richiesta esplicita di Bax
+  // (2026-07-11) per motivi di privacy. La via/civico esatti restano solo
+  // come nota qui sotto per Bax stesso — l'indirizzo preciso va comunicato
+  // al cliente unicamente nella mail di conferma prenotazione, configurata
+  // lato Cal.com (vedi BUILD_PROGRESS.md per la procedura passo-passo).
+  //
+  // Via/civico reali (NON usare in nessun componente pubblico):
+  // Via Guglielmo Marconi 35
   address: {
-    line1: "Via Guglielmo Marconi 35",
-    line2: "35010 Cadoneghe (PD)",
+    city: "Cadoneghe",
+    province: "PD",
+    postalCode: "35010",
     parking: "Parcheggio disponibile in via/piazza indicativa nelle vicinanze.",
     transport: "A 5 minuti a piedi dalla fermata del tram / autobus più vicina.",
+    // Query a livello di città (non via/civico): la mappa mostra l'area di
+    // Cadoneghe, non un pin sulla porta di casa.
     mapsEmbedSrc:
-      "https://www.google.com/maps?q=Via+Guglielmo+Marconi+35,+35010+Cadoneghe+PD,+Italia&output=embed",
+      "https://www.google.com/maps?q=Cadoneghe+PD,+Italia&output=embed",
     mapsLinkHref:
-      "https://www.google.com/maps/search/?api=1&query=Via+Guglielmo+Marconi+35,+35010+Cadoneghe+PD,+Italia",
+      "https://www.google.com/maps/search/?api=1&query=Cadoneghe+PD,+Italia",
   },
 
   // TODO Bax: handle Instagram reale ancora da confermare.

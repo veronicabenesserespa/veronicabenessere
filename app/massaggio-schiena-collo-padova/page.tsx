@@ -77,23 +77,23 @@ export default function MassaggioSchienaColloPadovaPage() {
           <p className="mt-4 text-sm leading-relaxed text-cream/60">
             Il prezzo è a pacchetto e vale per qualsiasi trattamento del
             listino, decontratturante incluso.{" "}
-            <a
+            <Link
               href="/prezzi-massaggi-padova"
               className="border-b border-sand/40 text-sand hover:border-sand"
             >
               Vedi tutti i pacchetti
-            </a>
+            </Link>
             .
           </p>
         </div>
 
         <div className="mt-14 flex flex-wrap items-center gap-4">
-          <a
+          <Link
             href="/#prenota"
             className="label-eyebrow rounded-full bg-sand px-8 py-4 text-ink transition-transform hover:scale-[1.03]"
           >
             Prenota il tuo momento
-          </a>
+          </Link>
           <a
             href={socialLinks.whatsappHref}
             target="_blank"
