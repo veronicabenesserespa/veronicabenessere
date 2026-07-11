@@ -12,6 +12,50 @@ aperta · ❌ da fare.
 
 ---
 
+## 0b. Quattordicesimo giro (2026-07-11, feedback Bax): favicon fiore di loto
+
+✅ **Favicon originale creata** — Bax ha chiesto "un fiore di loto o qualcosa
+da spa/benessere", senza fornire il file sorgente del monogramma reale visto
+nel catalogo. Per evitare di copiare un asset di provenienza incerta
+(possibile output di un altro tool generativo, vedi nota già presente nei
+"Prossimi passi bloccanti" di questo file), ho **ridisegnato da zero** un
+fiore di loto stilizzato: 5 petali (path SVG a mandorla, stessa forma
+ruotata a -70/-35/0/35/70°) in `--sand` (#c7af8b, opacità scalata sui
+petali esterni per profondità) con un accento centrale `--cream-soft`
+(#f3ebd9), su un badge circolare `--deep-green` (#1f3423) — stessa palette
+del sito, nessun colore nuovo introdotto.
+✅ **File creati** (convenzione Next.js App Router, `app/**` file
+conventions — vedi `node_modules/next/dist/docs/.../app-icons.md`):
+- `app/icon.svg` — sorgente vettoriale, unica fonte di verità del disegno,
+  serve direttamente i browser moderni (`<link rel="icon" ... type="image/
+  svg+xml">`, crisp a qualunque dimensione).
+- `app/favicon.ico` — rigenerato (sostituisce il default Next.js/triangolo
+  rimasto dallo scaffold iniziale) via script una tantum con `sharp` (già
+  una dipendenza del progetto, usata da `next/image`): rasterizza
+  `icon.svg` a 16/32/48px e li incapsula in un container ICO scritto a mano
+  (formato minimale, immagini PNG embedded direttamente — valido da Windows
+  Vista in poi, nessuna libreria ICO esterna necessaria). Script temporaneo,
+  non committato.
+- `app/apple-icon.png` — 180×180, sfondo pieno (niente trasparenza, iOS
+  applica la sua maschera), stessa fonte vettoriale.
+✅ **Verificato**: build di produzione pulita, avviato `next start` e
+controllato l'HTML reale — tutti e 3 i tag corretti in `<head>`
+(`rel="icon"` su favicon.ico e icon.svg, `rel="apple-touch-icon"` su
+apple-icon.png, content-type giusti). Controllo visivo del rendering a
+16/32/180px: a 32px+ il fiore si legge chiaramente, a 16px non-retina
+(rendering nativo, non upscalato) resta un badge verde con un accento
+chiaro riconoscibile ma il dettaglio dei petali si perde — comportamento
+normale per qualunque favicon dettagliato a quella risoluzione, non un
+difetto di questo disegno specifico; sugli schermi retina (la maggioranza
+del traffico mobile/desktop oggi) il browser renderizza l'SVG a
+risoluzione più alta e il fiore resta leggibile.
+⚠️ **Se in futuro arriva il file sorgente del monogramma reale** (SVG del
+logo dal catalogo), questa favicon disegnata da zero va probabilmente
+sostituita con quella per coerenza col logo ufficiale — per ora resta
+un'interpretazione originale, non l'asset del brand reale.
+
+---
+
 ## 0a. Tredicesimo giro (2026-07-11, feedback Bax): indirizzo privato, prezzi aggiornati
 
 ✅ **Indirizzo pubblico ridotto a solo città/CAP** — richiesta esplicita di
@@ -184,8 +228,8 @@ sintesi unica.
 `app/layout.tsx`.
 ✅ Spacing/utility editoriali (`.editorial-container`, `.label-eyebrow`,
 `.hairline`) definiti.
-⚠️ Nessun favicon/monogramma personalizzato ancora generato dal logo reale
-(fiore di loto visto nel catalogo) — resta il favicon di default Next.js.
+✅ Favicon originale (fiore di loto ridisegnato da zero, non il monogramma
+del catalogo) generata il 2026-07-11 — vedi blocco 0b.
 
 ## 4. Componenti motion
 ✅ `AnimatedLine.tsx` — linee scaleX 0→1 con ScrollTrigger.
@@ -854,9 +898,9 @@ fatta all'ultimo blocco, dopo aver chiuso i punti aperti sopra.
    ancora le foto (massage-room, hands-massage, towels-oil, 3x instagram
    preview) — quando arrivano vanno depositate in `public/assets/` con i
    nomi già cablati nel codice (vedi `public/assets/README.md`).
-3. **Logo/favicon**: se Bax vuole il monogramma a fiore di loto come favicon,
-   serve il file sorgente (SVG) o l'ok a ridisegnarlo da zero (originale, non
-   copiato dal catalogo esistente se quello è stato generato da un altro
-   tool).
+3. ✅ **Favicon**: risolta 2026-07-11 con un fiore di loto originale
+   ridisegnato da zero (vedi blocco 0b). Resta aperto solo se Bax vuole
+   sostituirla in futuro col monogramma reale del catalogo — servirebbe il
+   file sorgente (SVG).
 4. **FAQ SEO** (opzionale, da CLAUDE.md ma non nel prompt esteso): se Bax la
    vuole, si aggiunge come nuovo blocco/componente.
