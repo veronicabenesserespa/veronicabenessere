@@ -4,11 +4,12 @@
 // ============================================================================
 
 export const site = {
-  // TODO Bax: dominio reale non ancora confermato. Finché resta questo
-  // placeholder, canonical URL, sitemap, robots e Open Graph puntano tutti
-  // a un indirizzo che non esiste — vanno tutti aggiornati automaticamente
-  // (leggono tutti da qui) appena il dominio vero è deciso/acquistato.
-  url: "https://www.nomeattivita.it",
+  // Dominio reale (verificato 2026-08-09: apex risponde 200, www fa 307
+  // sull'apex, quindi la forma canonica è senza www). Canonical URL,
+  // sitemap, robots, Open Graph e JSON-LD leggono tutti da qui: fino al
+  // 2026-08-09 puntavano al placeholder "www.nomeattivita.it", un dominio
+  // che non esiste, e lo facevano in produzione.
+  url: "https://veronicabenessere.com",
 
   // Nome dell'attività, mostrato in navbar, footer e metadata
   businessName: "Veronica Benessere",

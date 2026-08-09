@@ -12,6 +12,176 @@ aperta · ❌ da fare.
 
 ---
 
+## 0e. Diciassettesimo giro (2026-08-09, bug report Bax): "il calendario è ancora lì e il Redmi ricarica"
+
+🐛 **Sintomo riportato**: sul Redmi la pagina continua a ricaricarsi, e il
+calendario in home non è stato sostituito dal bottone come concordato.
+
+🔎 **Causa radice: i fix del giro 0d non erano mai stati spediti.** Tutto il
+lavoro del 2026-08-08 era rimasto nel working tree — nessun commit, nessun
+push, quindi nessun deploy. `git status` mostrava sette file modificati +
+`MapEmbed.tsx` non tracciato, e `origin/main` era ancora fermo a `459288b`.
+In produzione girava quindi il codice **con** il bug, identico a prima.
+
+**Prove raccolte sull'HTML servito da `veronicabenessere.com` (non sul
+codice locale)**: il container `cal-booking` era presente in home, l'HTML
+conteneva 1 `<iframe>` (la mappa di Google montata subito dentro la sezione
+pinnata), e i link a `/prenota` erano **zero** — cioè la pagina `/prenota`
+esisteva in produzione da giorni ma non era raggiungibile da nessun punto
+del sito. Il giro 0d aveva verificato tutto sulla build locale, mai sul
+deploy: da qui in avanti la verifica va fatta sull'URL pubblico.
+
+✅ **Fix**: commit + push dei fix 0d (auto-deploy Vercel su `main`).
+
+🐛 **Secondo bug, trovato durante la verifica: dominio sbagliato in
+produzione.** Il dominio reale è **`https://veronicabenessere.com`**
+(verificato: apex risponde 200, `www.` risponde 307 verso l'apex — quindi
+la forma canonica è senza www; il vecchio `veronicabenessere.vercel.app`
+redirige lì). `data/site.ts:11` conteneva ancora il placeholder
+`https://www.nomeattivita.it`, che compariva **28 volte** nell'HTML servito
+in produzione: canonical, Open Graph, JSON-LD, sitemap. A Google stavamo
+dichiarando che il sito vero è un dominio inesistente. Corretto in
+`data/site.ts` — tutto il resto lo legge da lì.
+
+✅ **Verificato sulla build di produzione** (`.next/server/app/`): home con
+`cal-booking` = 0, `<iframe>` = 0, link a `/prenota` = 11, canonical
+`https://veronicabenessere.com`; `/prenota` con il container montato.
+`npm run lint` 0 errori (resta il warning preesistente sull'`<img>` della
+hero), `npm run build` pulito.
+
+### ⚠️ Regola di processo da non dimenticare
+
+**"Verificato" significa verificato sull'URL pubblico, non sulla build
+locale.** Un blocco non è chiuso finché `git status` non è pulito e la
+pagina in produzione non mostra il fix. Il giro 0d era corretto in ogni
+riga di codice e non ha risolto nulla per un giorno intero.
+
+---
+
+## 0d. Sedicesimo giro (2026-08-08, bug report Bax): calendario in loop di ricaricamento + HTTP 409
+
+🐛 **Sintomo riportato**: sul telefono di alcuni utenti il calendario in home
+si ricaricava di continuo, e in un caso è comparso un errore HTTP 409
+(trace `trace_-FSJa_LGt_Ga_DDae6sY3`). Su desktop e su altri telefoni
+funzionava, senza nesso apparente.
+
+🔎 **Causa radice (non era Cal.com)**: `components/BookingSection.tsx`
+montava `<CalEmbed>` dentro una `StackedSection`, che è pinnata da GSAP
+ScrollTrigger (`pin: true`). Per pinnare, GSAP avvolge l'elemento in un
+`.pin-spacer` e **a ogni refresh rimuove lo spacer e reinserisce l'elemento
+nel DOM** per rimisurarlo. Un `<iframe>` rimosso e reinserito nel DOM perde
+il browsing context e **ricarica il documento da zero** (comportamento da
+specifica HTML; la doc GSAP avverte esplicitamente che non si può pinnare un
+elemento con iframe figli senza che il frame si ricarichi).
+
+🔎 **Perché solo su alcuni telefoni**: in `node_modules/gsap/ScrollTrigger.js`
+(`_ignoreMobileResize`, riga ~211) su touch il refresh scatta solo se
+l'altezza del viewport cambia oltre il **25%**. La barra degli indirizzi
+(10-15%) non ci arriva; **la tastiera virtuale di Android sì** (40-50%).
+Quindi: utente tocca un campo del form Cal.com → tastiera → refresh →
+iframe ricaricato → campo perso → tastiera chiusa → nuovo refresh → loop.
+Su **iOS** la tastiera non tocca `window.innerHeight` (agisce su
+`visualViewport`), su **desktop** non esiste: lì il bug non si vedeva.
+Il **409** è la conseguenza: il reload avviene dopo che il POST di
+prenotazione è partito ma prima della conferma a schermo, l'utente crede
+sia fallito e riprova, lo slot ora è occupato dalla sua stessa prima
+prenotazione → Cal.com risponde 409.
+
+✅ **Fix applicati**:
+- `components/BookingSection.tsx` — calendario rimosso dalla home,
+  sostituito da un blocco CTA (stessa card `SoftEdgeReveal`, stesse info
+  pratiche) che porta a `/prenota`. Commento lungo in testa al file che
+  spiega perché lì dentro non va **mai** messo un iframe.
+- `components/CalEmbed.tsx` — `useId()` per id elemento e namespace Cal.com
+  univoci per istanza (prima l'id era la costante `cal-booking` e il
+  namespace quello di default: due istanze, o un remount in navigazione
+  client-side, si contendevano lo stesso target lasciando il secondo
+  bloccato su "Caricamento calendario"). Aggiunto fallback dopo 8s con link
+  diretto a `cal.com/<calLink>` per i browser che bloccano gli iframe di
+  terze parti. Se il namespace non fosse disponibile si ripiega **esatto**
+  sul percorso già in produzione, così il caso peggiore è "come prima".
+  MutationObserver ora con `subtree: true` (Cal inserisce un wrapper
+  `<cal-inline>` e solo dentro quello l'iframe).
+- `components/StickyCTA.tsx` — punta a `/prenota` invece che all'ancora
+  `#prenota`, e **si nasconde su `/prenota`**: era `fixed bottom-0 z-40`,
+  quindi lì copriva i 64px inferiori dell'embed, cioè la zona del bottone
+  di conferma su schermi piccoli.
+- `components/TreatmentsMenu.tsx` — i "Prenota" di trattamenti e pacchetti
+  puntano a `/prenota` (chi tocca lì ha già scelto), con `aria-label`
+  distinti invece di sei link identici "Prenota".
+- `components/FullscreenMenu.tsx` — le ancore del menu (`#trattamenti`,
+  `#prenota`...) fuori dalla home non risolvevano nulla e il tap restava
+  senza effetto: ora sono prefissate con `/` quando `!isHome`. Stesso per
+  il logo (`#home` → `/`).
+- `components/MapEmbed.tsx` (**nuovo**) + `components/LocationSection.tsx` —
+  stessa causa radice: l'iframe di Google Maps stava dentro la
+  `StackedSection` pinnata di Location. Danno molto minore (nessun campo di
+  input in quella sezione, quindi niente tastiera: si ricaricava in pratica
+  solo al cambio di orientamento), ma stesso difetto. Ora è una **facciata
+  click-to-load**: si vede il placeholder testurizzato già disegnato e
+  l'iframe non esiste nel DOM finché l'utente non tocca "Mostra la mappa".
+  Doppio guadagno: il ricaricamento da pin diventa uno stato raro e voluto,
+  e Google Maps (pesante, con cookie di terze parti al primo byte) esce dal
+  caricamento iniziale della home. Il link esterno "Apri in Google Maps"
+  resta sempre visibile, così chi vuole la mappa vera in una scheda nuova
+  non deve prima caricare l'embed. Il ramo "mapsEmbedSrc vuoto" continua a
+  mostrare il placeholder "Mappa in arrivo" come prima.
+
+✅ **Verificato**: `npm run lint` (0 errori, resta solo il warning
+preesistente sull'`<img>` di fallback della hero) e `npm run build` puliti;
+HTML reale controllato route per route: home senza container `cal-booking`
+e con link a `/prenota`, `/prenota` con il container montato, barra sticky
+presente su `/` e `/privacy` e assente su `/prenota`, `/#trattamenti` su
+`/privacy` contro `#trattamenti` in home. Sull'HTML prerenderizzato della
+home: **0 tag `<iframe>`** (prima ce n'era 1, la mappa). La stringa
+dell'URL di embed compare una volta sola nel payload RSC come prop del
+client component, inerte finché non si clicca.
+
+### ⚠️ Regola architetturale da non dimenticare
+
+**Mai montare un `<iframe>` dentro una `StackedSection`.** Vale per il
+calendario, per la mappa, e per qualunque embed futuro (video YouTube,
+widget recensioni, form esterni). Se serve un embed dentro una sezione
+pinnata ci sono due sole strade: portarlo su una pagina non pinnata (come
+`/prenota`) o montarlo su click con una facciata (come `MapEmbed`).
+
+---
+
+## 🔜 DA QUI DOMANI (2026-08-08, fine sessione)
+
+**1. Verifica a occhio, prima di deployare.** Non ho potuto controllare a
+runtime che l'embed Cal.com si monti davvero: l'estensione Chrome non era
+connessa, e il montaggio dipende da JS lato client. `npm run dev`, apri
+`http://localhost:3000/prenota` e guarda che il calendario compaia (non
+deve restare su "Caricamento calendario..."). È l'unico punto della
+modifica di CalEmbed che resta scoperto. Se restasse bloccato, il sospetto
+numero uno è il namespace: il fallback in `CalEmbed.tsx` ripiega sul
+percorso già in produzione, quindi in caso di dubbio si può togliere il
+namespace e tenere solo l'id univoco da `useId`.
+Controlla anche la home: la mappa deve mostrare "Mostra la mappa" e
+caricarsi al click.
+
+**2. Cal.com → Bookings: cerca la prenotazione fantasma.** Se il 409 era una
+prenotazione doppia (ipotesi principale), c'è un appuntamento fantasma che
+sta occupando uno slot reale nel calendario di Veronica. Va cancellato.
+Se invece non c'è nessuna prenotazione doppia, allora il 409 è un
+`no_available_users_found_error` lato Cal.com e va cercato altrove:
+Event Type → Limits (max prenotazioni al giorno/settimana, buffer,
+preavviso minimo) e Apps → connessione Google Calendar scaduta.
+
+**3. ❌ BLOCCANTE: il dominio reale.** `data/site.ts:11` ha ancora
+`url: "https://www.nomeattivita.it"`, che non esiste. Canonical, sitemap,
+robots e Open Graph puntano tutti lì, **in produzione, adesso**. È l'unico
+problema rilevato in questa sessione che non ho potuto chiudere perché
+serve il dato da Bax. Si cambia in un punto solo: tutto il resto lo legge
+da lì.
+
+**4. Restano aperti dai giri precedenti**: `og-cover.jpg` (1200x630) manca,
+quindi i link condivisi su WhatsApp/Instagram non hanno anteprima;
+Facebook (se esiste); orari confermati.
+
+---
+
 ## 0c. Quindicesimo giro (2026-07-11, feedback Bax): Instagram reale confermato
 
 ✅ **Handle e link reali**: `@veronica.benessere`,
