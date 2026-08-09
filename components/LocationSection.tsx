@@ -1,3 +1,4 @@
+import MapEmbed from "@/components/MapEmbed";
 import RevealText from "@/components/RevealText";
 import SoftEdgeReveal from "@/components/SoftEdgeReveal";
 import StackedSection from "@/components/StackedSection";
@@ -35,48 +36,20 @@ export default function LocationSection() {
         <div className="mt-14 grid gap-10 md:mt-16 md:grid-cols-2 md:gap-14">
           {/*
             GOOGLE MAPS EMBED
-            In Google Maps: Condividi > Incorpora una mappa > copia l'URL
-            dentro il src dell'iframe (o valorizza address.mapsEmbedSrc in
-            data/site.ts). Finché resta vuoto, viene mostrato un placeholder.
+            Unica cosa da toccare: address.mapsEmbedSrc in data/site.ts
+            (in Google Maps: Condividi > Incorpora una mappa > copia l'URL).
+            Finché resta vuoto viene mostrato un placeholder "in arrivo".
+            L'iframe vero è dentro MapEmbed e si monta solo al click: qui
+            siamo dentro una sezione pinnata, e un iframe montato subito si
+            ricaricherebbe a ogni refresh di ScrollTrigger. Il perché per
+            esteso è in components/MapEmbed.tsx.
           */}
           <SoftEdgeReveal className="relative aspect-[4/3] overflow-hidden rounded-xl border border-cream/15 bg-warm-brown/40 md:aspect-auto">
-            {site.address.mapsEmbedSrc ? (
-              <iframe
-                src={site.address.mapsEmbedSrc}
-                className="h-full w-full"
-                style={{ border: 0 }}
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                title="Mappa dello studio"
-              />
-            ) : (
-              <div
-                className="flex h-full min-h-[320px] w-full flex-col items-center justify-center gap-4 p-8 text-center"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(var(--cream) 1px, transparent 1px), linear-gradient(90deg, var(--cream) 1px, transparent 1px)",
-                  backgroundSize: "28px 28px",
-                  backgroundColor: "var(--warm-brown)",
-                  backgroundPosition: "center",
-                  opacity: 0.98,
-                }}
-              >
-                <span className="label-eyebrow text-sand">
-                  Mappa in arrivo
-                </span>
-                <p className="max-w-xs text-sm text-cream/70">
-                  Qui verrà mostrata la mappa dello studio a {site.city}.
-                </p>
-                <a
-                  href={site.address.mapsLinkHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="label-eyebrow border-b border-sand/50 pb-1 text-cream hover:border-cream"
-                >
-                  Apri in Google Maps
-                </a>
-              </div>
-            )}
+            <MapEmbed
+              embedSrc={site.address.mapsEmbedSrc}
+              linkHref={site.address.mapsLinkHref}
+              city={site.city}
+            />
           </SoftEdgeReveal>
 
           <div className="flex flex-col justify-center gap-8">

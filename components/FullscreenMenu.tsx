@@ -164,7 +164,7 @@ export default function FullscreenMenu() {
       >
         <a
           ref={logoRef}
-          href="#home"
+          href={isHome ? "#home" : "/"}
           className="font-display text-xl tracking-wide text-cream md:text-2xl"
         >
           <span className="italic">{site.operatorName}</span>{" "}
@@ -200,8 +200,15 @@ export default function FullscreenMenu() {
           <ul ref={linksRef} className="flex flex-col gap-3 md:gap-5">
             {navLinks.map((link) => (
               <li key={link.href}>
+                {/*
+                  navLinks sono ancore della home (#trattamenti, #prenota...).
+                  Fuori dalla home (privacy, cookie, /prenota, pagine SEO)
+                  un href="#trattamenti" non risolve nulla e il tap resta
+                  senza effetto: lì va prefissato con "/" per tornare in home
+                  e poi scorrere alla sezione.
+                */}
                 <a
-                  href={link.href}
+                  href={isHome ? link.href : `/${link.href}`}
                   onClick={() => setIsOpen(false)}
                   tabIndex={isOpen ? 0 : -1}
                   className="font-display text-[13vw] font-light leading-[1.05] text-cream transition-colors hover:text-sand md:text-6xl lg:text-7xl"

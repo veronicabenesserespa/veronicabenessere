@@ -1,6 +1,15 @@
+import Link from "next/link";
 import RevealText from "@/components/RevealText";
 import StackedSection from "@/components/StackedSection";
 import { treatments, treatmentsNote, packages } from "@/data/treatments";
+
+/**
+ * I "Prenota" di questa sezione puntano a /prenota (il calendario) e non
+ * all'ancora #prenota: chi tocca "Prenota" accanto a un trattamento o a un
+ * pacchetto ha già scelto, mandarlo su una sezione intermedia che richiede
+ * un altro tap è attrito. Vedi anche la nota in BookingSection.tsx sul
+ * perché il calendario non può stare in home.
+ */
 
 export default function TreatmentsMenu() {
   return (
@@ -60,12 +69,13 @@ export default function TreatmentsMenu() {
                 {t.duration}
               </span>
 
-              <a
-                href="#prenota"
+              <Link
+                href="/prenota"
+                aria-label={`Prenota: ${t.title}`}
                 className="label-eyebrow justify-self-start rounded-full border border-sand/40 px-6 py-3 text-center text-cream transition-colors hover:border-sand hover:bg-sand hover:text-ink md:col-span-2 md:justify-self-end"
               >
                 Prenota
-              </a>
+              </Link>
             </div>
           ))}
 
@@ -114,12 +124,13 @@ export default function TreatmentsMenu() {
                     </p>
                   ) : null}
                 </div>
-                <a
-                  href="#prenota"
+                <Link
+                  href="/prenota"
+                  aria-label={`Prenota il pacchetto ${p.sessions}`}
                   className="label-eyebrow self-start border-b border-sand/40 pb-1 text-cream transition-colors hover:border-sand hover:text-sand"
                 >
                   Prenota
-                </a>
+                </Link>
               </div>
             ))}
           </div>
